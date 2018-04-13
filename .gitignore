@@ -1,6 +1,3 @@
-*
-!linear_regression.py
-!linear_regression.ipynb
+.*
 !.gitignore
-!README.md
-!gradient.html
+/temp

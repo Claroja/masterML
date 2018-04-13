@@ -1,0 +1,87 @@
+<html>
+<style>
+.axis path,
+.axis line{
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+svg {
+	display:inline-block;
+	width: 300px;
+	height: 300px;
+}
+</style>
+    <body>
+			<svg id=zero></svg>
+			<svg id=first></svg>
+        <script src="../temp/d3.min.js"></script>
+		<script src="../share/axis.js"></script>
+        <script>
+			function click(d, i) {
+					cdata = d3.mouse(this);
+					svg1.append("circle")
+						.attr("cx",cdata[0])
+						.attr("cy",cdata[1])
+						.attr("r",2);
+					y= h(x1linear.invert(cdata[0]),y1linear.invert(cdata[1]))
+					s= sig(y)
+					svg.append("circle")
+						.attr({
+							cx:xlinear(y),
+							cy:ylinear(s),
+							r:2
+						})
+				}								
+			function sig(z){
+					return 1/(1+Math.exp(-z));
+				}
+			function h(x1,x2){
+					return x2-x1;
+				}
+			
+			svg =d3.select("svg[id=zero]")  //sigmoid图像
+			dataset = [];
+			for(i=-100;i<100;i++){
+				dataset.push({"x":i/10,"y":sig(i/10)})
+			}
+
+			xdomain=[-10,10]
+			ydomain=[-0.1,1]
+			temp= axix(svg,xdomain,ydomain)
+			xlinear = temp[0]
+			ylinear =temp[1]
+			var line = d3.svg.line()
+					.x((d) => xlinear(d.x))
+					.y((d) => ylinear(d.y)) 
+					.interpolate('linear');
+			svg.append('path')
+					.attr('d', line(dataset))
+					.attr('stroke-width', 2)
+					.attr('stroke','green')
+					.attr('fill',"none")
+
+
+			svg1 =	d3.select("svg[id=first]") //拟合曲线图像
+				.on("click", click);
+			x1domain = [-1,10]
+			y1domain = [-1,10]
+			temp= axix(svg1,x1domain,y1domain)
+			x1linear = temp[0]
+			y1linear =temp[1]
+			svg1.append('line')
+					.attr({
+					x1:x1linear(0),
+					y1:y1linear(0),
+					x2:x1linear(9),
+					y2:y1linear(9),
+					stroke:"black"
+				});	
+        </script>
+    </body>
+</html>

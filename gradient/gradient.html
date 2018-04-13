@@ -1,0 +1,84 @@
+<html>
+<style>
+.axis path,
+.axis line{
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+svg {
+	display:inline-block;
+}
+</style>
+    <body>
+			<svg id=zero width=300 height =300 ></svg>
+			<svg id=first width=300 height =300 ></svg>
+        <script src="../temp/d3.min.js"></script>
+		<script src="../share/axis.js"></script>
+        <script>
+					svg =	d3.select("svg[id=zero]")  //损失函数坐标系
+					xdomain = [-100,100]
+					ydomain = [-5000,32000]
+					temp= axix(svg,xdomain,ydomain)
+					xlinear = temp[0]
+					ylinear =temp[1]
+					
+					svg1 = d3.select("svg[id=first]")  //拟合直线坐标系
+					x1domain = [-1,10]
+					y1domain = [-10,100]
+					temp= axix(svg1,x1domain,y1domain)
+					x1linear = temp[0]
+					y1linear =temp[1]
+							
+					d3.json("../temp/test.json", function(json){ //做损失函数
+						var line = svg.selectAll("line[new]")
+						.data(json)
+						.enter()
+						.append('line')
+						.attr('x1', (d)=>xlinear(d.x1))
+						.attr('y1', (d)=>ylinear(d.y1))
+						.attr('x2', (d)=>xlinear(d.x2))
+						.attr('y2', (d)=>ylinear(d.y2))
+						.attr("class","new")
+						.attr('stroke','black')
+					});				
+					var circle_data=[[1,2],[3,1],[3,3]];  //做样本
+						svg1.selectAll("circle")
+						.data(circle_data)
+						.enter()
+						.append("circle")
+							.attr({
+							cx:(d)=>x1linear(d[0]),
+							cy:(d)=>y1linear(d[1]),
+						r:2,
+					});
+					
+					d3.json("../temp/test1.json", function(json){  //点击 观察拟合直线和损失函数的关系
+						var testdata=json.reverse();
+						svg.on("mousedown",function(){
+							data = testdata.pop()
+							console.log(data)
+							svg.append('circle')
+							.attr('cx',xlinear(data.cx))
+							.attr('cy',ylinear(data.cy))
+							.attr('r',2);
+						svg1.select("line[class = temp]").remove();
+						svg1.append("line")
+							.attr({
+								x1:x1linear(0),
+								y1:y1linear(0),
+								x2:x1linear(10),
+								y2:y1linear(data.cx*10),
+								stroke:"black",
+								class:"temp",
+							})
+						});
+					});	
+        </script>
+    </body>
+</html>
