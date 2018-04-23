@@ -17,15 +17,31 @@ svg {
 </style>
     <body>
 	<svg id=zero width=300 height =300 ></svg>
+	<table border="1">
+  <tr>
+    <th>x</th>
+    <th>y</th>
+    <th>y_</th>
+    <th>g</th>
+  </tr>
+</table>
+	
         <script src="https://cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
 	<script src="../share/axis.js"></script>
         <script>
+		tab=d3.select("table")
+	
+					
+					
+					
+					
+					
 		x=d3.range(-100,100)
-		y=x.map(x=>0.01*x*x)
+		y=x.map(x=>x*x)
 		data = d3.zip(x,y)
 		svg =	d3.select("svg[id=zero]")  //损失函数坐标系
 		xdomain = [-100,100]
-		ydomain = [-10,100]
+		ydomain = [-100,10000]
 		temp= axix(svg,xdomain,ydomain)
 		xlinear = temp[0]
 		ylinear =temp[1]
@@ -45,32 +61,42 @@ svg {
 		  .attr('stroke-width', 2)
 		  .attr('fill', 'none');				
 		
-		svg.append('circle')
-			.attr({
-			cx:xlinear(60),
-			cy:ylinear(60),
-			r:2,
-			});
-		
-// 		var line = svg.selectAll("line[new]")
-// 		.data(json)
-// 		.enter()
-// 		.append('line')
-// 		.attr('x1', (d)=>xlinear(d.x1))
-// 		.attr('y1', (d)=>ylinear(d.y1))
-// 		.attr('x2', (d)=>xlinear(d.x2))
-// 		.attr('y2', (d)=>ylinear(d.y2))
-// 		.attr("class","new")
-// 		.attr('stroke','black')
+			function iter(x,alpha)
+			{
+				g_list=[];
+				x_list=[];
+				y_list=[];
+				y__list=[];
+				for(i=1;i<1000;i++){
+					y=x*x;
+					y_=2*x*x;
+					gradient = alpha*y_;
+					x_list.push(x);
+					y_list.push(y);
+					y__list.push(y_);
+					g_list.push(gradient)
+					y=y-gradient;
+					x=Math.sqrt(y);
+				}
+				return d3.zip(x_list,y_list,y__list,g_list)
+			}
 			
   //点击 观察拟合直线和损失函数的关系
+		testdata =  iter(x=100,alpha=0.1);
+		console.log(testdata);
 		svg.on("mousedown",function(){
-			data = testdata.pop()
-			console.log(data)
+			data = testdata.shift();
+			console.log(data);
 			svg.append('circle')
-			.attr('cx',xlinear(data.cx))
-			.attr('cy',ylinear(data.cy))
-			.attr('r',2);
+			.attr('cx',xlinear(data[0]))
+			.attr('cy',ylinear(data[1]))
+			.attr('r',2);	
+		tab.append("tr")
+			.selectAll("td")
+			.data(data)
+			.enter()
+			.append("td")
+			.text((d)=>d.toFixed(2))
 			})	
         </script>
     </body>
