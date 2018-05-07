@@ -23,6 +23,7 @@ svg {
     <th>y0</th>
     <th>x1</th>
     <th>y1</th>
+		<th>v1</th>
   </tr>
 </table>
 	
@@ -30,23 +31,27 @@ svg {
 	<script src="../share/axis.js"></script>
 	<script>
 		
-		k=0.6;
+		k=-0.9/0.43;
 		b=0;
-		x=[0,10];
+		x=[-3,0];
 		y=x.map(x=>k*x+b);  //做要投射的直线
+		
+		//一个点投影
+// 		x_temp0=[0];
+// 		y_temp0=[0];
+		
 
 		//一个类别投影
-		ax0=5;  // a类中心点
-		ay0=5;
+// 		ax0=5;  // a类中心点
+// 		ay0=5;
 		
 		
 // 		//两个类别投影
 		ax0=3;  // a类中心点
 		ay0=5;
 		x_temp0=[1.7,1.5,1.4,1.3,1.2,1,0.7,0.5,0.4,0.3,0.2,0.1];  //初始点位置，相对于类别中心的位置，各个点的绝对位置是中心点位置和相对位置相加
-		y_temp0=[0.4,0.2,0.3,0.3,0.4,0,0.5,0,0.4,-0.4,0.3,-0.3];
-// 		
-		ax1=8;
+		y_temp0=[0.4,0.2,0.3,0.3,0.4,0,0.5,0,0.4,-0.4,0.3,-0.3];		
+		ax1=7;
 		ay1=5;
 // 
 		
@@ -62,7 +67,9 @@ function ga(ax,ay,x_temp0,y_temp0){
 			p=d3.zip(x0,y0)  //为计算投影点的位置要先将二者临时合并一下
 			x1=p.map(p=>(k*(p[1]-b)+p[0])/(k*k+1));
 			y1=x1.map(x=>k*x+b);  //投影点
-			f=d3.zip(x0,y0,x1,y1);  //整合投影点，原始点的数据
+			p1=d3.zip(x1,y1)
+			v1=p1.map(p=>Math.sqrt(p[0]*p[0]+p[1]*p[1]))
+			f=d3.zip(x0,y0,x1,y1,v1);  //整合投影点，原始点的数据
 			return f;
 		}
 		z=ga(ax0,ay0,x_temp0,y_temp0);  //类别1的点
@@ -71,8 +78,9 @@ function ga(ax,ay,x_temp0,y_temp0){
 		
 		svg = d3.select("svg[id=zero]")
 		tab=d3.select("table")
+		z_all=z
 		z_all=z.concat(z1);  //拼合两种类型数据，统一显示在表格中
-		tab.selectAll("tr")
+		tab.selectAll("tr[class=new]")
 			.data(z_all)
 			.enter()
 			.append('tr')
@@ -82,11 +90,12 @@ function ga(ax,ay,x_temp0,y_temp0){
 			.enter()
 			.append("td")
 			.text((d)=>d.toFixed(2))
-	
-		
+			.attr('class','new')
+	test = z.map(z=>z[4])
+	console.log(d3.variance(test))
 		
 function gc(type,svg,z){
-			temp= axix(svg,[-1,11],[-1,11])
+			temp= axix(svg,[-3,11],[-2,11])
 			xs = temp[0]
 			ys =temp[1]	
 			svg.append('line')  //添加投影的线
@@ -108,16 +117,16 @@ function gc(type,svg,z){
 				.attr('stroke_width','1')
 				.attr('class','p'+type)			
 				
-				svg.append('circle')
+				svg.append('circle')  //单个投影点m
 				.attr('cx',xs(z[z.length-1][2]))
 				.attr('cy',ys(z[z.length-1][3]))
-				.attr('r',3)
+				.attr('r',2)
 				.attr('fill',type)
 				.attr('stroke','black')
 				.attr('stroke_width','1')
 				.attr('class','m'+type)
 				
-// 			svg.selectAll('circle[class=m'+type+']')  //添加投影点m
+// 			svg.selectAll('circle[class=m'+type+']')  //添加所有点的投影点m
 // 				.data(z[7])
 // 				.enter()
 // 				.append('circle')
@@ -128,7 +137,7 @@ function gc(type,svg,z){
 // 				.attr('stroke','black')
 // 				.attr('stroke_width','1')
 // 				.attr('class','m'+type)
-				
+// 				
 			svg.selectAll('line[class=pm'+type+']')	//	添加点和投影点的连线
 				.data(z)
 				.enter()

@@ -1,55 +1,67 @@
-feature_dict = {i:label for i,label in zip(
-                range(4),
-                  ('sepal length in cm',
-                  'sepal width in cm',
-                  'petal length in cm',
-                  'petal width in cm', ))}
-import pandas as pd
-
-df = pd.io.parsers.read_csv(
-    filepath_or_buffer='https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data',
-    header=None,
-    sep=',',
-    )
-df.columns = [l for i,l in sorted(feature_dict.items())] + ['class label']
-df.dropna(how="all", inplace=True) # to drop the empty line at file-end
-
-df.tail()
-
-
-
-from sklearn.preprocessing import LabelEncoder
-
-X = df.iloc[:,0:4].values
-y = df['class label'].values
-
-enc = LabelEncoder()
-label_encoder = enc.fit(y)
-y = label_encoder.transform(y) + 1
-
-label_dict = {1: 'Setosa', 2: 'Versicolor', 3:'Virginica'}
-
-from matplotlib import pyplot as plt
 import numpy as np
-import math
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.model_selection import train_test_split
+
+iris = datasets.load_iris()  # 导入数据集
+
+iris.keys()  # 查看数据集的构成
+
+print(iris['DESCR'])  # 查看数据集的描述
+
+iris['feature_names']  # 查看自变量的名称
+
+iris['target_names']  # 查看因变量的名称
+
+iris['target']  # 查看因变量数据
+
+iris['data']  # 查看自变量数据
+
+X = iris['data']  # 获取自变量数据
+
+y = iris['target']  # 获取因变量数据
+
+target_names = iris['target_names']  # 获取因变量名称
 
 
-# 第一步求，每一个分类的平均值
-np.set_printoptions(precision=4)
+# 观察数据集 展示图形，这里我们只使用sepal length和sepal width两个属性。
+for m,i,target_names in zip('vo^',range(2),target_names[0:2]):
+    sl = X[y == i,0]  # sl = sepal length (cm)
+    sw = X[y == i,1]  # sw = sepal width (cm)
+    plt.scatter(sl,sw,marker=m,label=target_names,s=30,c='k')
 
-mean_vectors = []
-for cl in range(1,4):
-    mean_vectors.append(np.mean(X[y==cl], axis=0))
-    print('Mean Vector class %s: %s\n' %(cl, mean_vectors[cl-1]))
+plt.xlabel('sepal length (cm)')  # 绘制x轴和y轴标签名
+plt.ylabel('sepal width (cm)')
+
+# 压缩后图形
+X=X[(y==1) | (y==0),0:2]  # 获取sepal length和sepal width两个属性的自变量矩阵
+y=y[(y==1) | (y==0)]  # 获取sepal length和sepal width两个属性的因变量矩阵
+
+lda = LinearDiscriminantAnalysis(n_components=1)  # 创建模型变量，并设置压缩之后的维度
+
+ld = lda.fit(X,y)  # 训练数据
+
+X_t =ld.transform(X)  # 将模型应用到原矩阵上，降维
+
+y_t = np.zeros(X_t.shape)  # 因为压缩到1维所以y轴坐标全部为0
+
+for m,i,target_names in zip('ov^',range(3),target_names):  # 做压缩后的图像
+    plt.scatter(X_t[y == i],y_t[y == i],marker=m,label=target_names,s=30,c='k')
+plt.legend()
+plt.grid()
+
+# 分类
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)  # 分割训练集和测试集
+
+lda = LinearDiscriminantAnalysis(n_components=1)  # 创建线性判别对象
+
+ld = lda.fit(X_train,y_train)  # 训练模型
+
+pre = ld.predict(X_test)  # 模型预测
+
+list(zip(pre,y_test,pre==y_test))  # 查查看预测结果
+
+ld.score(X_test,y_test) # 查看正确率
 
 
-
-# 第二步求，计算协方差矩阵
-S_W = np.zeros((4,4))
-for cl,mv in zip(range(1,4), mean_vectors):
-    class_sc_mat = np.zeros((4,4))                  # scatter matrix for every class
-    for row in X[y == cl]:
-        row, mv = row.reshape(4,1), mv.reshape(4,1) # make column vectors
-        class_sc_mat += (row-mv).dot((row-mv).T)
-    S_W += class_sc_mat                             # sum class scatter matrices
-print('within-class Scatter Matrix:\n', S_W)
