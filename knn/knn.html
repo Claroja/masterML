@@ -1,0 +1,105 @@
+<html>
+<style>
+.axis path,
+.axis line{
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+svg {
+	display:inline-block;
+}
+</style>
+<body>
+<script src="https://cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
+<script src="../share/axis.js"></script>
+<svg id=zero width=300 height =300 ></svg>
+<script>
+
+svg=d3.select('svg') 
+temp= axix(svg,[-1.2,11],[-1.2,11])  //构建坐标系
+xs = temp[0]
+ys = temp[1]
+
+N=5 //取几个点
+nc=[8,5]  //new circle
+tri=[[2,7],[2,8],[2,6],[2,4],[2,3],[1,4],[1,5],[1,6],[1,7],[4,4],[4,5],[4,6]]  //三角数据
+tri.forEach(function(d){d.push('tri')})  //在每个元素后面加上标签
+cir=[[7,7],[7,8],[7,6],[7,5],[7,4],[7,3],[6,5],[6,4],[8,4],[8,6],[9,4],[9,5],[9,6],[9,7]]  //圆数据
+cir.forEach(function(d){d.push('cir')})  //在每个元素后面加上标签
+lin=tri.concat(cir)  //画线数据
+
+lin.sort((a,b)=>Math.sqrt((a[0]-nc[0])*(a[0]-nc[0])+(a[1]-nc[1])*(a[1]-nc[1]))-Math.sqrt((b[0]-nc[0])*(b[0]-nc[0])+(b[1]-nc[1])*(b[1]-nc[1])))  //按距离从大到小排列,画最近点数据
+
+svg.selectAll('text[class=tri]') //做出所有的三角
+	.data(tri)
+	.enter() 
+	.append('text')
+	.attr('class','tri')
+	.text('▷')
+	.attr("x",d=>xs(d[0]))
+	.attr('y',d=>ys(d[1]))
+	.attr('text-anchor',"middle")
+	.attr('dy','.35em')
+	// .attr('font-size',20)
+
+svg.selectAll('text[class=cir]')  //做出所有的圆
+	.data(cir)
+	.enter()
+	.append('text')
+	.text('○')
+	.attr('class','cir')
+	.attr("x",d=>xs(d[0]))
+	.attr('y',d=>ys(d[1]))
+	.attr('text-anchor',"middle")
+	.attr('dy','.35em')
+	// .attr('font-size',20)
+	
+
+	
+	
+svg.append('text') //画新的点
+	.text("x")
+	.attr('x',xs(nc[0]))
+	.attr('y',ys(nc[1]))
+	.attr('text-anchor',"middle")
+	.attr('dy','.29em')
+	.attr('stroke','black')
+	.attr('font-size','12')
+	
+
+
+svg.selectAll('text[class=black]')  //画距离最近的点
+	.data(lin.slice(0,N))
+	.enter()
+	.append('text')
+	.attr('class','black')
+	.text(function(d){
+		if (d[2]=='cir'){return '●'}
+		if (d[2]=='tri'){return '▶'}	
+	})
+	.attr('x',d=>xs(d[0]))
+	.attr('y',d=>ys(d[1]))
+	.attr('text-anchor',"middle")
+	.attr('dy','.35em')
+	
+
+svg.selectAll('line[class=all]')
+	.data(lin.slice(0,N))
+	.enter()
+	.append('line')
+	.attr('x1',xs(nc[0]))
+	.attr('y1',ys(nc[1]))
+	.attr('x2',d=>xs(d[0]))
+	.attr('y2',d=>ys(d[1]))
+	.attr('stroke','black')
+	.attr('stroke-dasharray',"5,5")
+	
+</script>
+</body>
+</html>

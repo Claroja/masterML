@@ -1,8 +1,8 @@
 function axix(svg,xdomain,ydomain){
-	width = svg.style()[0][0].width["baseVal"]["value"]
-	height = svg.style()[0][0].height["baseVal"]["value"]
-	x_zero = (0-d3.min(xdomain))/(d3.max(xdomain)-d3.min(xdomain))
-	y_zero = (0-d3.min(ydomain))/(d3.max(ydomain)-d3.min(ydomain))
+	width = svg.style()[0][0].width["baseVal"]["value"]  //获得svg的宽度
+	height = svg.style()[0][0].height["baseVal"]["value"]  //获得svg的高度
+	x_zero = (0-d3.min(xdomain))/(d3.max(xdomain)-d3.min(xdomain))  //标准化坐标系，用于确定0点的位置
+	y_zero = (0-d3.min(ydomain))/(d3.max(ydomain)-d3.min(ydomain))  //标准化坐标系，用于确定0点的位置
 	
 	var xlinear = d3.scale.linear()
 		.domain([xdomain[0], xdomain[1]])
@@ -26,5 +26,22 @@ function axix(svg,xdomain,ydomain){
 		.attr("class","axis")
 		.attr("transform","translate("+(width)*x_zero+",0)")  //y轴左右平移不会对坐标系造成影响
 		.call(yaxis);
+		
+	svg.selectAll('.axis text[y="9"]')  //将x轴的0标左移动
+    .each(function (d, i) {
+        if ( d == 0 ) {
+            d3.select(this)
+			.attr("dx",'-1em')
+        }})
+	svg.selectAll('.axis text[x="-9"]') //删除y轴0标
+	.each(function (d, i) {
+		if ( d == 0 ) {
+		this.remove()
+		}});
+	svg.selectAll('.axis text')  //删除-1标
+	.each(function (d, i) {
+		if ( d == -1 ) {
+		this.remove()
+		}});
 	return [xlinear,ylinear]
 	}
