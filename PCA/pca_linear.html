@@ -1,0 +1,220 @@
+<html>
+<style>
+.axis path,
+.axis line{
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+svg {
+	display:inline-block;
+}
+</style>
+<body>
+	<script src="https://cdn.bootcss.com/d3/3.5.17/d3.min.js"></script>
+	<script src="./axis.js"></script>
+	<script src="https://cdn.bootcss.com/numeric/1.2.6/numeric.min.js"></script>
+	<svg id=zero width=300 height =300 >
+	</svg>
+<script type="text/javascript">
+
+
+m =[[-1,-2],[-1,0],[0,0],[2,1],[0,1]]
+m_T=numeric.transpose(m)
+cov = numeric.dot(m_T,m)
+cov = numeric.mul(0.2,cov)
+
+
+a = numeric.eig(cov)
+eig = numeric.neg(a.E.x)
+eig1 = [eig[0][0],eig[1][0]]
+eigv = a.lambda.x
+
+m_p = numeric.dot(eig1,m_T)  //计算投影后的长度
+m2 = m.map((d,i)=>numeric.mul(m_p[i],d))  //计算投影后的坐标
+
+m_all = d3.zip(m,m2)
+//特征基的变化长度
+j_n = 10
+
+svg=d3.select('svg')
+width=svg.attr('width')
+height=svg.attr('height')
+
+var xs = d3.scale.linear()
+        .domain([-10, 10])
+        .range([0, width]);
+		
+var ys = d3.scale.linear()
+        .domain([-10, 10])
+        .range([height,0]);
+
+//创建水平线和垂直线
+ten=new Array(20).fill(10)
+ten_n=new Array(20).fill(-10)
+other = d3.range(-10,11)		
+//添加横坐标
+hx1y1=d3.zip(ten_n,other)
+hx1y1=d3.transpose(hx1y1)
+hx1y1=numeric.dot(m,hx1y1)
+
+hx2y2=d3.zip(ten,other)
+hx2y2=d3.transpose(hx2y2)
+hx2y2=numeric.dot(m,hx2y2)
+
+hxy=hx1y1.concat(hx2y2)
+hxy=d3.transpose(hxy)
+
+hl0 = d3.zip(ten_n,other,ten,other)
+hl1=hxy
+hl=d3.zip(hl0,hl1)
+
+svg.selectAll('line[class=hl]') //原始横坐标
+	.data(hl)
+	.enter()
+	.append('line')  //添加y轴
+	.attr({
+		"x1":d=>xs(d[0][0]),
+		"y1":d=>ys(d[0][1]),
+		"x2":d=>xs(d[0][2]),
+		"y2":d=>ys(d[0][3]),
+		"stroke":'black',
+		'stroke-dasharray':"2,2",
+		"class":'hl',
+		'opacity':function(d,i){if(i==10){return 1}else{return 0.2}},
+	})
+	
+//添加纵坐标	
+lx1y1=d3.zip(other,ten_n)
+lx1y1=d3.transpose(lx1y1)
+lx1y1=numeric.dot(m,lx1y1)
+
+lx2y2=d3.zip(other,ten)
+lx2y2=d3.transpose(lx2y2)
+lx2y2=numeric.dot(m,lx2y2)
+
+lxy=lx1y1.concat(lx2y2)
+lxy=d3.transpose(lxy)
+
+vl0 = d3.zip(other,ten_n,other,ten)
+vl1=lxy
+vl=d3.zip(vl0,vl1)
+	
+svg.selectAll('line[class=vl]') //原始纵坐标
+	.data(vl)
+	.enter()
+	.append('line')  //添加y轴
+	.attr({
+		"x1":d=>xs(d[0][0]),
+		"y1":d=>ys(d[0][1]),
+		"x2":d=>xs(d[0][2]),
+		"y2":d=>ys(d[0][3]),
+		"stroke":'black',
+		'stroke-dasharray':"2,2",
+		"class":'vl',
+		'opacity':function(d,i){if(i==10){return 1}else{return 0.2}},
+	})
+
+
+//添加特征基	
+svg.append('line')
+	.attr({
+		"x1":xs(0),
+		'y1':ys(0),
+		'x2':xs(eig[0][0]),
+		'y2':ys(eig[1][0]),
+		"stroke":'black',
+		'class':'eig'
+	})
+	.transition()
+	.duration(2500)
+	.attr({
+		"x1":xs(0),
+		'y1':ys(0),
+		'x2':xs(j_n*eigv[0]*eig[0][0]),
+		'y2':ys(j_n*eigv[0]*eig[1][0]),
+		"stroke":'black'		
+	})
+svg.append('line')
+	.attr({
+		"x1":xs(0),
+		'y1':ys(0),
+		'x2':xs(-eig[0][0]),
+		'y2':ys(-eig[1][0]),
+		"stroke":'black',
+		'class':'eig'
+	})
+	.transition()
+	.duration(2500)
+	.attr({
+		"x1":xs(0),
+		'y1':ys(0),
+		'x2':xs(-j_n*eigv[0]*eig[0][0]),
+		'y2':ys(-j_n*eigv[0]*eig[1][0]),
+		"stroke":'black'		
+	})
+
+svg.append('line')
+	.attr({
+		"x1":xs(0),
+		'y1':ys(0),
+		'x2':xs(eig[0][1]),
+		'y2':ys(eig[1][1]),
+		"stroke":'black'
+	})
+	.transition()
+	.duration(2500)
+	.attr({
+		"x1":xs(0),
+		'y1':ys(0),
+		'x2':xs(j_n*eigv[1]*eig[0][1]),
+		'y2':ys(j_n*eigv[1]*eig[1][1]),
+		"stroke":'black',
+		'class':"eig"
+	})
+
+
+// 添加点
+
+svg.selectAll('circle[class=c1]')
+	.data(m)
+	.enter()
+	.append('circle')
+	.attr({
+		"cx":d=>xs(d[0]),
+		"cy":d=>ys(d[1]),
+		'r':2,
+		"class":'c1'
+	})
+
+svg.selectAll('circle[class=c2]')
+	.data(m2)
+	.enter()
+	.append('circle')
+	.attr({
+		"cx":d=>xs(d[0]),
+		"cy":d=>ys(d[1]),
+		'r':2,
+		"class":'c2'
+	})
+// svg.selectAll('line[class=m_p]') //原始纵坐标
+// 	.data(m_all)
+// 	.enter()
+// 	.append('line')  //添加y轴
+// 	.attr({
+// 		"x1":d=>xs(d[0][0]),
+// 		"y1":d=>ys(d[0][1]),
+// 		"x2":d=>xs(d[1][0]),
+// 		"y2":d=>ys(d[1][1]),
+// 		"stroke":'black',
+// 		'stroke-dasharray':"2,2",
+// 		"class":'m_p',
+// 	})
+</script>
+</body>
+</html>
