@@ -17,3 +17,7 @@ from sklearn.decomposition import PCA
 pca = PCA(n_components=1)
 pca.fit(a)
 X_new = pca.transform(a)
+
+
+test = np.array([1,2])
+test.repeat(2,axis=1)
