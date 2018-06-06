@@ -8,10 +8,18 @@ eig=np.linalg.eig(c)
 c=eig[1][:,0]  # 求第一个特征向量
 
 touying1=a.dot(c.T)
-li=[]
-for i in range(len(touying1)):
-    li.append(touying1[i]*a[i])
-li=np.array(li)
+li=c.reshape(1,len(c)).repeat(len(touying1),axis=0)
+touying1=touying1.reshape(len(touying1),1).repeat(2,axis=1)
+touying=li*touying1
+
+import matplotlib.pyplot as plt
+plt.figure(figsize=(5,5))
+plt.scatter(a.T[0],a.T[1],c='red')
+plt.scatter(touying.T[0],touying.T[1])
+plt.plot([0,0.707],[0,0.707])
+plt.xlim([-10,10])
+plt.ylim([-10,10])
+
 
 from sklearn.decomposition import PCA
 pca = PCA(n_components=1)
