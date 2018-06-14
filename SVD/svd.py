@@ -7,4 +7,11 @@ pca.fit(a)
 
 X_new = pca.transform(a)
 
-np.linalg.svd(a.T)
+u,s,v = np.linalg.svd(a)
+s=s.tolist()
+s.extend([0,0,0])
+
+
+temp1=u.dot(np.diag(s))
+temp1=temp1[:,0:2]
+temp1.dot(v)
